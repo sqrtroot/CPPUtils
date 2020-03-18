@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: create_builddir
+      run: mkdir build
     - name: cmake
       run: cmake ..
       working-directory: ./build
