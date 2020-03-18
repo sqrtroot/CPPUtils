@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: configure
-      run:  mkdir build && cd build
     - name: cmake
       run: cmake ..
+      working-directory: ./build
     - name: build
       run: cmake --build . -j $(nproc)
+      working-directory: ./build
     - name: tests
-      run: ./tests/UtilTests
+      run: ./build/tests/UtilTests
