@@ -10,19 +10,14 @@
 #include <memory>
 #include <type_traits>
 
-std::unique_ptr<char[]> to_c_array(const absl::string_view &view) {
-  auto array = absl::make_unique<char[]>(view.size() + 1);
-  memcpy(array.get(), view.begin(), view.size());
-  array[view.size()] = '\0';
-  return array;
-}
+namespace FromStringviewImpl {
+constexpr int CONVERSION_BASE = 10;
 
-namespace _impl {
 template<typename T, typename Enable = void>
-struct from_stringview {};
+struct FromStringview {};
 
 template<typename T>
-struct from_stringview<T, typename std::enable_if<std::is_floating_point<T>::value>::type> {
+struct FromStringview<T, typename std::enable_if<std::is_floating_point<T>::value>::type> {
   absl::optional<T> operator()(const absl::string_view &view) {
     T    out;
     auto ec = absl::from_chars(view.begin(), view.end(), out);
@@ -33,13 +28,13 @@ struct from_stringview<T, typename std::enable_if<std::is_floating_point<T>::val
   }
 };
 template<typename T>
-struct from_stringview<T, typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value>::type> {
+struct FromStringview<T, typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value>::type> {
   absl::optional<T> operator()(const absl::string_view &view) {
     if(view.front() == '-') {
       return absl::nullopt;
     }
-    auto c_str = to_c_array(view);
-    auto val   = strtoull(c_str.get(), nullptr, 10);
+    std::string str(view);
+    auto val   = strtoull(str.c_str(), /*__endptr=*/nullptr, CONVERSION_BASE);
     if(errno || val > std::numeric_limits<T>::max()) {
       errno = 0;
       return absl::nullopt;
@@ -48,10 +43,10 @@ struct from_stringview<T, typename std::enable_if<std::is_integral<T>::value && 
   }
 };
 template<typename T>
-struct from_stringview<T, typename std::enable_if<std::is_integral<T>::value && !std::is_unsigned<T>::value>::type> {
+struct FromStringview<T, typename std::enable_if<std::is_integral<T>::value && !std::is_unsigned<T>::value>::type> {
   absl::optional<T> operator()(const absl::string_view &view) {
-    auto c_str = to_c_array(view);
-    auto val   = strtoll(c_str.get(), nullptr, 10);
+    std::string str(view);
+    auto val   = strtoll(str.c_str(), /*__endptr=*/nullptr, CONVERSION_BASE);
     if(errno || val > std::numeric_limits<T>::max() || val < std::numeric_limits<T>::min()) {
       errno = 0;
       return absl::nullopt;
@@ -59,10 +54,10 @@ struct from_stringview<T, typename std::enable_if<std::is_integral<T>::value && 
     return val;
   }
 };
-}    // namespace _impl
+}    // namespace FromStringviewImpl
 template<typename T>
 absl::optional<T> from_stringview(const absl::string_view &view) {
-  return _impl::from_stringview<T>()(view);
+  return FromStringviewImpl::FromStringview<T>()(view);
 }
 
 #endif

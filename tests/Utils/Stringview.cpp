@@ -7,22 +7,6 @@
 #include <numeric>
 #include <sstream>
 
-TEST_CASE("Converting stringview to oldschool char array", "[Stringview]") {
-  absl::string_view x     = "Hello world";
-  auto              array = to_c_array(x);
-  SECTION("String sizes should be equal") {
-    REQUIRE(strlen(array.get()) == x.size());
-  }
-  SECTION("Last elemenent should be null terminator") {
-    REQUIRE(array[x.size()] == '\0');
-  }
-  SECTION("All characters should be the same") {
-    for(size_t i = 0; i < x.size(); i++) {
-      REQUIRE(x[i] == array[i]);
-    }
-  }
-}
-
 template<typename T>
 std::string generate_string(T number) {
   std::ostringstream outStream;

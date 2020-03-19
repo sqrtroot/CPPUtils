@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -23,3 +23,17 @@ jobs:
       working-directory: ./build
     - name: tests
       run: ./build/tests/UtilsTests
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: install clang-tidy
+      run: |
+        sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+        sudo apt-get install clang-tools-9 clang-9 clang-format-9 clang-tidy-9
+    - name: generate compilation db
+      run: cmake . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+    - name: clang-tidy version
+      run: clang-tidy-9 --version
+    - name: run clang-tidy
+      run: find include -type f | xargs clang-tidy-9 --warnings-as-errors="*"

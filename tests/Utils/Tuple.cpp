@@ -11,13 +11,13 @@ TEST_CASE("Tuple to member pointers", "[TupleUtil]") {
   struct C : public Base {};
   std::tuple<A, B, C> holder;
   using holder_t = decltype(holder);
-  auto pointers  = to_pointers<Base *>(holder);
+  auto pointers  = to_pointers<const Base *>(holder);
 
   SECTION("Array size should be the same as tuple size") {
     REQUIRE(pointers.size() == std::tuple_size<holder_t>::value);
   };
   SECTION("Pointers should be valid pointers to base type") {
-    for(Base *ptr: pointers) {
+    for(auto ptr : pointers) {
       REQUIRE(ptr != nullptr);
       REQUIRE(ptr->x == 0xDEADBEEF);
     }
