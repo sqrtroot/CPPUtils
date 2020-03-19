@@ -19,7 +19,7 @@ jobs:
       run: cmake ..
       working-directory: ./build
     - name: build
-      run: cmake --build . -j $(nproc)
+      run: cmake --build . -j $(nproc) --target UtilsTests
       working-directory: ./build
     - name: tests
       run: ./build/tests/UtilTests
