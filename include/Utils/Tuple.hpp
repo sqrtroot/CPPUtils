@@ -8,8 +8,8 @@ template<typename R, size_t S, size_t I>
 struct ToPointerImpl {
   template<typename... T>
   constexpr std::array<R, S> operator()(const std::tuple<T...> &r, std::array<R, S> &&arr) const {
-    return arr[S - I] = static_cast<R>(
-             &std::get<S - I>(r), ToPointerImpl<R, S, I - 1>()(r, std::move(arr)));
+    return arr[S - I] = (R) &std::get<S - I>(r),
+                   ToPointerImpl<R, S, I - 1>()(r, std::move(arr));
   }
 };
 
